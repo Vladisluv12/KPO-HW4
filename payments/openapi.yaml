@@ -1,0 +1,154 @@
+openapi: 3.0.0
+info:
+  title: Payments API
+  description: Микросервис для управления платежами и счетами
+  version: 1.0.0
+servers:
+  - url: http://localhost:8081
+    description: Development server
+
+paths:
+  /create/{user_id}:
+    post:
+      tags:
+        - Bills
+      summary: Создать счет
+      description: Создает новый счет для пользователя
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      responses:
+        '200':
+          description: Счет успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                    description: ID созданного счета
+                  user_id:
+                    type: string
+                  status:
+                    type: string
+                    default: new
+        '400':
+          description: Ошибка валидации параметров
+        '500':
+          description: Ошибка сервера
+
+  /add/{bill_id}:
+    post:
+      tags:
+        - Bills
+      summary: Пополнить баланс счета
+      description: Пополняет баланс существующего счета
+      parameters:
+        - name: bill_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID счета
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: float
+                  description: Сумма пополнения
+              required:
+                - amount
+      responses:
+        '200':
+          description: Баланс успешно пополнен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  balance:
+                    type: number
+                    format: float
+                  user_id:
+                    type: string
+        '400':
+          description: Ошибка валидации параметров
+        '404':
+          description: Счет не найден
+        '500':
+          description: Ошибка сервера
+
+  /balance/{bill_id}:
+    get:
+      tags:
+        - Bills 
+      summary: Получить баланс счета
+      description: Получает текущий баланс счета пользователя
+      parameters:
+        - name: bill_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID счета
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      responses:
+        '200':
+          description: Баланс успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  balance:
+                    type: number
+                    format: float
+                  user_id:
+                    type: string
+        '400':
+          description: Ошибка валидации параметров
+        '404':
+          description: Счет не найден
+        '500':
+          description: Ошибка сервера
+
+components:
+  schemas:
+    Bill:
+      type: object
+      properties:
+        bill_id:
+          type: string
+        user_id:
+          type: string
+        balance:
+          type: number
+          format: float
+        status:
+          type: string
+          enum: [new, active, closed]

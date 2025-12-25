@@ -1,0 +1,244 @@
+openapi: 3.0.0
+info:
+  title: API Gateway
+  description: API Gateway для маршрутизации запросов к микросервисам
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Gateway server
+
+paths:
+  /payments/create:
+    post:
+      summary: Создать счет (через Gateway)
+      description: Создает новый счет для пользователя (проксирует на Payments)
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      responses:
+        '200':
+          description: Счет успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  user_id:
+                    type: string
+        '400':
+          description: Ошибка валидации параметров
+        '500':
+          description: Ошибка сервера
+
+  /payments/add:
+    post:
+      summary: Пополнить баланс счета (через Gateway)
+      description: Пополняет баланс счета (проксирует на Payments)
+      parameters:
+        - name: bill_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID счета
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: float
+      responses:
+        '200':
+          description: Баланс успешно пополнен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  balance:
+                    type: number
+                    format: float
+        '400':
+          description: Ошибка валидации параметров
+        '404':
+          description: Счет не найден
+        '500':
+          description: Ошибка сервера
+
+  /payments/balance:
+    get:
+      summary: Получить баланс счета (через Gateway)
+      description: Получает баланс счета (проксирует на Payments)
+      parameters:
+        - name: bill_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID счета
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      responses:
+        '200':
+          description: Баланс успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_id:
+                    type: string
+                  balance:
+                    type: number
+                    format: float
+        '400':
+          description: Ошибка валидации параметров
+        '404':
+          description: Счет не найден
+        '500':
+          description: Ошибка сервера
+
+  /orders/create:
+    post:
+      summary: Создать заказ (через Gateway)
+      description: Создает новый заказ (проксирует на Orders)
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: float
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Заказ успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  user_id:
+                    type: string
+                  amount:
+                    type: number
+                    format: float
+                  description:
+                    type: string
+                  status:
+                    type: string
+        '400':
+          description: Ошибка валидации параметров
+        '500':
+          description: Ошибка сервера
+
+  /orders/orders:
+    get:
+      summary: Получить заказы пользователя (через Gateway)
+      description: Возвращает все заказы пользователя (проксирует на Orders)
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      responses:
+        '200':
+          description: Список заказов успешно получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    user_id:
+                      type: string
+                    amount:
+                      type: number
+                      format: float
+                    description:
+                      type: string
+                    status:
+                      type: string
+        '400':
+          description: Ошибка валидации параметров
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Ошибка сервера
+
+  /orders/status:
+    get:
+      summary: Получить статус заказа (через Gateway)
+      description: Получает информацию о заказе (проксирует на Orders)
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID заказа
+      responses:
+        '200':
+          description: Информация о заказе успешно получена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order_id:
+                    type: string
+                  user_id:
+                    type: string
+                  amount:
+                    type: number
+                    format: float
+                  description:
+                    type: string
+                  status:
+                    type: string
+        '400':
+          description: Ошибка валидации параметров
+        '404':
+          description: Заказ не найден
+        '500':
+          description: Ошибка сервера
