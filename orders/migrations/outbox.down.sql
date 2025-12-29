@@ -1,1 +1,2 @@
-DROP TABLE outbox if exists;
+DROP TABLE IF EXISTS outbox;
+DROP TYPE IF EXISTS outbox_status CASCADE;

@@ -1,0 +1,204 @@
+openapi: 3.0.0
+info:
+  title: Unified E-commerce Gateway API
+  description: Единая точка входа для управления платежами и заказами через API Gateway
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Development API Gateway
+
+paths:
+  # --- PAYMENTS SERVICE ---
+  /payments/create/{user_id}:
+    post:
+      tags:
+        - Payments
+      summary: Создать счет
+      description: Создает новый счет для пользователя в сервисе платежей
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID пользователя
+      responses:
+        '200':
+          description: Счет успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+        '400':
+          description: Ошибка валидации
+
+  /payments/add/{bill_id}:
+    post:
+      tags:
+        - Payments
+      summary: Пополнить баланс счета
+      parameters:
+        - name: bill_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: float
+              required:
+                - amount
+      responses:
+        '200':
+          description: Баланс пополнен
+        '404':
+          description: Счет не найден
+
+  /payments/balance/{bill_id}:
+    get:
+      tags:
+        - Payments
+      summary: Получить баланс счета
+      parameters:
+        - name: bill_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Информация о балансе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+
+  # --- ORDERS SERVICE ---
+  /orders/create/{user_id}:
+    post:
+      tags:
+        - Orders
+      summary: Создать заказ
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: float
+                description:
+                  type: string
+              required:
+                - amount
+                - description
+      responses:
+        '201':
+          description: Заказ создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+  /orders/orders/{user_id}:
+    get:
+      tags:
+        - Orders
+      summary: Список заказов пользователя
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список заказов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+
+  /orders/status/{order_id}:
+    get:
+      tags:
+        - Orders
+      summary: Статус заказа
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Информация о заказе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+components:
+  schemas:
+    Bill:
+      type: object
+      properties:
+        bill_id:
+          type: string
+        user_id:
+          type: string
+        balance:
+          type: number
+          format: float
+        status:
+          type: string
+          enum: [new, active, closed]
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        amount:
+          type: number
+          format: float
+        description:
+          type: string
+        status:
+          type: string
+          enum: [new, finished, canceled]
+      required:
+        - id
+        - user_id
+        - amount
+        - status

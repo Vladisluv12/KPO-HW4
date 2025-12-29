@@ -1,0 +1,1 @@
+DROP TABLE inbox if exists;

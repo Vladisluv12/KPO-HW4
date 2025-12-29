@@ -8,7 +8,7 @@ servers:
     description: Development server
 
 paths:
-  /create:
+  /create/{user_id}:
     post:
       summary: Создать заказ
       description: Создает новый заказ для пользователя
@@ -48,7 +48,7 @@ paths:
         '500':
           description: Ошибка сервера
 
-  /orders:
+  /orders/{user_id}:
     get:
       summary: Получить список заказов пользователя
       description: Возвращает все заказы конкретного пользователя
@@ -75,7 +75,7 @@ paths:
         '500':
           description: Ошибка сервера
 
-  /status:
+  /status/{order_id}:
     get:
       summary: Получить статус заказа
       description: Получает подробную информацию и статус конкретного заказа

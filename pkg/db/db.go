@@ -1,4 +1,4 @@
-package pkg
+package db
 
 import (
 	"context"
@@ -79,6 +79,46 @@ func Migrate(migrationsDir string) error {
 		_, err = DB.Exec(string(query))
 		if err != nil {
 			return fmt.Errorf("error in migration %s: %w", file, err)
+		}
+	}
+	return nil
+}
+
+// Rollback runs all .down.sql migrations in the given directory to revert changes
+func Rollback(migrationsDir string) error {
+	applied, err := checkMigrationsApplied()
+	if err != nil {
+		return err
+	}
+
+	if !applied {
+		fmt.Println("No migrations to rollback")
+		return nil
+	}
+
+	entries, err := os.ReadDir(migrationsDir)
+	if err != nil {
+		return fmt.Errorf("failed to read migrations directory: %w", err)
+	}
+
+	var migrationFiles []string
+	for _, entry := range entries {
+		if !entry.IsDir() && filepath.Ext(entry.Name()) == ".sql" && filepath.Base(entry.Name())[len(entry.Name())-8:len(entry.Name())-4] == ".down" {
+			migrationFiles = append(migrationFiles, filepath.Join(migrationsDir, entry.Name()))
+		}
+	}
+
+	// Execute down migrations in reverse order (latest first)
+	for i := len(migrationFiles) - 1; i >= 0; i-- {
+		file := migrationFiles[i]
+		fmt.Printf("Rolling back migration: %s\n", file)
+		query, err := os.ReadFile(file)
+		if err != nil {
+			return err
+		}
+		_, err = DB.Exec(string(query))
+		if err != nil {
+			return fmt.Errorf("error rolling back migration %s: %w", file, err)
 		}
 	}
 	return nil
