@@ -2,6 +2,16 @@ version: '3.8'
 
 services:
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: e-commerce-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
   api-gateway:
     image: nginx:alpine
     container_name: api-gateway
