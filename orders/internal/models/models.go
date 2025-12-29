@@ -26,10 +26,10 @@ type Order struct {
 }
 
 type PaymentRequest struct {
-	OrderID     uuid.UUID
-	UserID      uuid.UUID
-	Price       float64
-	Description string
+	OrderID     uuid.UUID `json:"id"`
+	UserID      uuid.UUID `json:"user_id"`
+	Price       float64   `json:"price"`
+	Description string    `json:"description"`
 }
 
 type PaymentResult struct {

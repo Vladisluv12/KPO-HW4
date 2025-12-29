@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	models "sd_hw4/orders/internal/models"
@@ -58,17 +59,24 @@ func (s *OrderService) CreateOrder(ctx context.Context, userID uuid.UUID, amount
 		return nil, fmt.Errorf("failed to marshal payment request: %w", err)
 	}
 
+	if !json.Valid(payload) {
+		return nil, fmt.Errorf("invalid JSON payload")
+	}
+
 	// Сохраняем в outbox
 	outboxMsg := &models.OutboxMessage{
 		ID:         uuid.New(),
 		MessageID:  uuid.New().String(),
 		Exchange:   "payments",
 		RoutingKey: "payment.request",
-		Payload:    payload,
+		Payload:    json.RawMessage(payload),
+		Headers:    json.RawMessage(`{}`),
 		Status:     models.StatusPending,
 		CreatedAt:  time.Now(),
 		RetryCount: 0,
 	}
+
+	log.Println("Created outbox message:", outboxMsg)
 
 	if err := s.outboxRepo.Create(ctx, outboxMsg); err != nil {
 		return nil, fmt.Errorf("failed to save outbox message: %w", err)

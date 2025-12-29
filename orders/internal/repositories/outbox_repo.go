@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	models "sd_hw4/orders/internal/models"
 	"time"
 
@@ -25,9 +26,19 @@ func (r *OutboxRepository) Create(ctx context.Context, msg *models.OutboxMessage
 		(id, message_id, exchange, routing_key, payload, headers, status, created_at, retry_count)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
+	var payloadJSON json.RawMessage
+	if msg.Payload != nil {
+		payloadJSON = json.RawMessage(msg.Payload)
+	}
+
+	var headersJSON json.RawMessage
+	if msg.Headers != nil {
+		headersJSON = json.RawMessage(msg.Headers)
+	}
+
 	_, err := r.db.ExecContext(ctx, query,
 		msg.ID, msg.MessageID, msg.Exchange, msg.RoutingKey,
-		msg.Payload, msg.Headers, msg.Status, msg.CreatedAt, msg.RetryCount)
+		payloadJSON, headersJSON, msg.Status, msg.CreatedAt, msg.RetryCount)
 	return err
 }
 

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	models "sd_hw4/orders/internal/models"
@@ -45,7 +46,7 @@ func (h *OrderHandler) CreateOrder(c echo.Context) error {
 	// Используем сервис для создания заказа
 	order, err := h.orderService.CreateOrder(c.Request().Context(), userID, req.Amount, req.Description)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create order")
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Failed to create order: %v", err))
 	}
 
 	// Преобразуем в DTO для ответа
